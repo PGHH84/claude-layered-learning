@@ -13,9 +13,17 @@ exceptions are called out explicitly. Present a consolidated report at the end.
 
 ## Phase 1: Ship It
 
+**Documentation sync (before commit):**
+1. Review the diff in each repo touched during the session
+2. If the change affects project-maintained docs (README, changelog, runbooks,
+   setup guides), update only the documents directly affected
+3. Do not make speculative or unrelated doc edits
+4. If no docs are affected, skip this step
+
 **Commit:**
 1. Run `git status` in each repo directory that was touched during the session
-2. If uncommitted changes exist, auto-commit with a descriptive message
+2. If uncommitted changes exist, invoke the `/commit` skill if available;
+   otherwise auto-commit with a descriptive message
 3. Push to remote
 
 **File placement check:**
