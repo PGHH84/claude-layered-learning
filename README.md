@@ -132,7 +132,7 @@ mkdir -p ~/.claude/memory/diary ~/.claude/memory/reflections
 
 **Reflect options:**
 ```
-/reflect                                    # Last 10 unprocessed entries
+/reflect                                    # All unprocessed entries
 /reflect last 20 entries                    # More entries
 /reflect from 2026-01-01 to 2026-03-31     # Date range
 /reflect for project ~/Developer/my-app     # Single project
