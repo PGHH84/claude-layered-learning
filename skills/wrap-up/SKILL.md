@@ -24,7 +24,6 @@ exceptions are called out explicitly. Present a consolidated report at the end.
 1. Run `git status` in each repo directory that was touched during the session
 2. If uncommitted changes exist, invoke the `/commit` skill if available;
    otherwise auto-commit with a descriptive message
-3. Push to remote
 
 **File placement check:**
 1. If any files were created or saved during this session:
@@ -80,9 +79,14 @@ Note anything important in the appropriate location.
 
 ## Phase 3: Review & Apply
 
-Analyze the conversation for self-improvement findings. If the session was
-short or routine with nothing notable, say "Nothing to improve" and proceed
-to diary capture.
+Analyze the conversation for self-improvement findings. Be brutally honest —
+the default tendency is to say "nothing to improve" to avoid friction. Fight
+that. Ask yourself: "If the user challenged me right now with 'are you sure
+there are no improvements?', would I find something?" If yes, you already
+have a finding — write it down.
+
+Only say "Nothing to improve" if the session was genuinely short (under 5
+exchanges) or purely informational (no code, no decisions, no corrections).
 
 **Auto-apply all actionable findings immediately**, except:
 - **Global `~/.claude/CLAUDE.md` changes** — show the proposed change and
@@ -136,3 +140,11 @@ for the `/reflect` command to mine later for cross-session patterns.
 
 This step always runs — even for short or routine sessions. Diary entries
 are cheap; missing data is expensive.
+
+## Final Step: Push
+
+After everything is complete (ship, remember, review, diary), ask:
+"Push to remote? (y/n)"
+
+If yes, push all committed changes. If no or no response, skip — the user
+can push later or just close the session.
