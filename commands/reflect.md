@@ -20,7 +20,7 @@ The user can provide:
 - **Project filter**: "for project [project-path]"
 - **Pattern filter**: "related to [keyword]" (e.g., "related to testing")
 
-Default: analyze the **last 10 unprocessed diary entries**.
+Default: analyze **all unprocessed diary entries**.
 
 ## Steps
 
