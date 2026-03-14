@@ -161,7 +161,7 @@ This project builds on ideas and code from several sources:
 
 - **[rlancemartin/claude-diary](https://github.com/rlancemartin/claude-diary)** — The diary/reflect pattern that forms the foundation of the deferred learning loop. The [blog post](https://rlancemartin.github.io/2025/12/01/claude_diary/) provides excellent framing around the Generative Agents paper and the CoALA framework.
 - **[PR #3](https://github.com/rlancemartin/claude-diary/pull/3) by [thebenlamm](https://github.com/thebenlamm)** — Added the global vs project-specific CLAUDE.md routing with the 3-step decision framework that reflect uses for rule classification.
-- **[Reddit post by u/d3smondth4n](https://www.reddit.com/r/ClaudeCode/comments/1r89084/comment/o9sv777/?context=3)** — The original wrap-up skill concept that inspired the immediate learning loop.
+- **[Reddit post by u/jonathanmalkin](https://www.reddit.com/r/ClaudeCode/comments/1r89084/comment/o9sv777/?context=3)** — The original wrap-up skill concept that inspired the immediate learning loop.
 
 ## License
 
