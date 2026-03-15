@@ -7,7 +7,7 @@ description: Use when user says "wrap up", "close session", "end session",
 
 # Session Wrap-Up
 
-Run three phases in order, then capture a diary entry. Each phase is
+Run four phases in order, then push. Each phase is
 conversational and inline — no separate documents. Most steps auto-apply;
 exceptions are called out explicitly. Present a consolidated report at the end.
 

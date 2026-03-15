@@ -15,10 +15,11 @@ Session work
     |
     v
 Wrap-up (immediate loop)
-    |-- Phase 1: Ship It (commit, push, deploy)
+    |-- Phase 1: Ship It (commit, deploy)
     |-- Phase 2: Remember It (save facts to memory hierarchy)
     |-- Phase 3: Review & Apply (self-improvement findings)
     |-- Phase 4: Diary Capture (invoke /diary)
+    |-- Final Step: Push (with confirmation)
     |
     v
 /diary (observation layer)
@@ -49,77 +50,24 @@ CLAUDE.md loads into every session (retrieval layer)
 | Auto memory | Yes | No |
 | CLAUDE.local.md | Yes | No |
 
-## Installation
-
-### 1. Clone and install commands
+## Quickstart
 
 ```bash
 git clone https://github.com/PGHH84/claude-layered-learning.git
 cd claude-layered-learning
 
-# Install commands and skill globally
+# Install commands and skill
 cp commands/*.md ~/.claude/commands/
 mkdir -p ~/.claude/skills/wrap-up
 cp skills/wrap-up/SKILL.md ~/.claude/skills/wrap-up/
-```
 
-### 2. Set up the PreCompact hook (recommended)
-
-This automatically captures a diary entry before Claude Code compacts long conversations, preserving context that would otherwise be lost.
-
-```bash
-mkdir -p ~/.claude/hooks
-cat > ~/.claude/hooks/pre-compact.sh << 'HOOK'
-#!/bin/bash
-echo "Auto-generating diary entry before compact..."
-echo "/diary"
-HOOK
-chmod +x ~/.claude/hooks/pre-compact.sh
-```
-
-Add the hook to `~/.claude/settings.json` (merge into your existing `hooks` section if you have one):
-
-```json
-{
-  "hooks": {
-    "PreCompact": [
-      {
-        "matcher": "auto",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/pre-compact.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "manual",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/pre-compact.sh"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-### 3. Create memory directories
-
-```bash
+# Create memory directories
 mkdir -p ~/.claude/memory/diary ~/.claude/memory/reflections
 ```
 
-### 4. Verify
+Then in Claude Code: run `/diary`, `/reflect`, or say "wrap up".
 
-```bash
-# In Claude Code, try:
-/diary
-/reflect
-# Or say "wrap up" to trigger the wrap-up skill
-```
+For the full setup (PreCompact hook, troubleshooting, updating, uninstalling), see **[INSTALL.md](INSTALL.md)**.
 
 ## Usage
 
@@ -149,19 +97,24 @@ commands/
 skills/
   wrap-up/
     SKILL.md            # wrap-up skill — ship, remember, review, diary
+hooks/
+  pre-compact.sh        # PreCompact hook — auto-diary before compaction
 examples/
-  (sample diary entries and reflections)
+  sample-diary-entry.md # What a diary entry looks like
+  sample-reflection.md  # What a reflection looks like
 ```
 
 Live files are installed to `~/.claude/commands/` and `~/.claude/skills/wrap-up/`. This repo contains shareable copies.
 
-## Acknowledgments
+## Built on
 
-This project builds on ideas and code from several sources:
+This project directly reuses and extends work by others. Huge kudos to:
 
-- **[rlancemartin/claude-diary](https://github.com/rlancemartin/claude-diary)** — The diary/reflect pattern that forms the foundation of the deferred learning loop. The [blog post](https://rlancemartin.github.io/2025/12/01/claude_diary/) provides excellent framing around the Generative Agents paper and the CoALA framework.
-- **[PR #3](https://github.com/rlancemartin/claude-diary/pull/3) by [thebenlamm](https://github.com/thebenlamm)** — Added the global vs project-specific CLAUDE.md routing with the 3-step decision framework that reflect uses for rule classification.
-- **[jonathanmalkin/jules](https://github.com/jonathanmalkin/jules)** and his **[Reddit post](https://www.reddit.com/r/ClaudeCode/comments/1r89084/comment/o9sv777/?context=3)** — The original wrap-up skill concept that inspired the immediate learning loop.
+- **[rlancemartin/claude-diary](https://github.com/rlancemartin/claude-diary)** — Our `/diary` and `/reflect` commands are forked from this project. The diary template, reflection workflow, processed-entry tracking, PreCompact hook, and the overall observe-reflect-retrieve architecture all originate here. Lance's [blog post](https://rlancemartin.github.io/2025/12/01/claude_diary/) on the Generative Agents paper and CoALA framework is the best explanation of why this approach works.
+- **[PR #3](https://github.com/rlancemartin/claude-diary/pull/3) by [thebenlamm](https://github.com/thebenlamm)** — Added the global vs project-specific CLAUDE.md routing with the 3-step decision framework that `/reflect` uses for rule classification. This PR is what makes reflect actually useful across multiple projects.
+- **[jonathanmalkin/jules](https://github.com/jonathanmalkin/jules)** and his **[Reddit post](https://www.reddit.com/r/ClaudeCode/comments/1r89084/comment/o9sv777/?context=3)** — The wrap-up skill concept that became our immediate learning loop. The idea of shipping, remembering, and self-reviewing at end-of-session comes directly from jules.
+
+What we added: the two-loop architecture that connects wrap-up (immediate) with diary/reflect (deferred), the memory hierarchy routing in Phase 2, and the self-challenge mechanism in Phase 3.
 
 ## License
 
