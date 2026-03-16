@@ -7,7 +7,7 @@ description: Use when user says "wrap up", "close session", "end session",
 
 # Session Wrap-Up
 
-Run four phases in order, then push. Each phase is
+Run three phases in order, then capture a diary entry. Each phase is
 conversational and inline — no separate documents. Most steps auto-apply;
 exceptions are called out explicitly. Present a consolidated report at the end.
 
@@ -53,6 +53,18 @@ knowledge belongs in the memory hierarchy.
 - Update the `Current state` section in MEMORY.md with today's date, the
   session number (increment from previous), and a concise summary of what
   changed and what's open next
+
+**Project status update:**
+1. Read `~/Developer/project-status.md`
+2. Find the entry for the current project
+   - If no entry exists, add one in the appropriate section (Active / Stable / Archive)
+3. Update these fields based on the session's work:
+   - **Status**: concise summary of where the project stands now
+   - **Last activity**: today's date
+   - **Next steps**: what's open or planned next
+   - **Backup**: "GitHub (repo-name)" or "Local only — sensitive, never push to GitHub"
+4. If the project's activity level has clearly changed (e.g., project is complete,
+   or a dormant project just became active), move it to the appropriate section
 
 **Memory placement guide:**
 - **Auto memory** (Claude writes for itself) — Debugging insights, patterns
@@ -140,6 +152,26 @@ for the `/reflect` command to mine later for cross-session patterns.
 
 This step always runs — even for short or routine sessions. Diary entries
 are cheap; missing data is expensive.
+
+### PreCompact diary capture
+
+The `PreCompact` hook (`~/.claude/hooks/pre-compact.sh`) is designed to capture
+a diary entry automatically when the conversation is compacted mid-session. It
+works by:
+
+1. Computing the diary file path in bash (date + project + session number)
+2. Outputting explicit Write tool instructions to Claude with the exact path
+
+**Why this design:** Echoing `/diary` does not work — during compaction Claude
+does not invoke the Skill tool pipeline. The hook must eliminate all multi-step
+tool calls; Claude during compaction can do a single Write call but won't load
+a skill first. By pre-computing the path in bash and inlining the instructions,
+the hook reduces the requirement to one Write tool call.
+
+**Limitation:** If Claude Code does not allow Write tool calls during compaction,
+the diary will still be missed. In that case the fallback is: run `/diary` manually
+at the start of the next session using the JSONL fallback path documented in
+`~/.claude/commands/diary.md`.
 
 ## Final Step: Push
 
