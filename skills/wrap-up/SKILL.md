@@ -54,18 +54,6 @@ knowledge belongs in the memory hierarchy.
   session number (increment from previous), and a concise summary of what
   changed and what's open next
 
-**Project status update:**
-1. Read `~/Developer/project-status.md`
-2. Find the entry for the current project
-   - If no entry exists, add one in the appropriate section (Active / Stable / Archive)
-3. Update these fields based on the session's work:
-   - **Status**: concise summary of where the project stands now
-   - **Last activity**: today's date
-   - **Next steps**: what's open or planned next
-   - **Backup**: "GitHub (repo-name)" or "Local only — sensitive, never push to GitHub"
-4. If the project's activity level has clearly changed (e.g., project is complete,
-   or a dormant project just became active), move it to the appropriate section
-
 **Memory placement guide:**
 - **Auto memory** (Claude writes for itself) — Debugging insights, patterns
   discovered during the session, project quirks
