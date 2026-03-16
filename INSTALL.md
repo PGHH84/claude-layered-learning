@@ -35,7 +35,7 @@ mkdir -p ~/.claude/memory/diary ~/.claude/memory/reflections
 
 The PreCompact hook automatically captures a diary entry before Claude Code compacts long conversations. This preserves context that would otherwise be lost during compaction.
 
-**How it works:** The hook runs before compaction starts (while Claude still has full session context). Its output is fed back to Claude, which sees the `/diary` instruction and runs the diary command before compaction proceeds.
+**How it works:** The hook runs before compaction starts (while Claude still has full session context). It computes the diary file path in bash (date + project + session number) and outputs explicit Write tool instructions to Claude with the exact path. This reduces Claude's required work to a single Write tool call — echoing `/diary` doesn't work because Claude during compaction doesn't invoke the Skill tool pipeline.
 
 **Step 1: Install the hook script**
 
@@ -50,8 +50,35 @@ If you cloned without the `hooks/` directory, create the script manually:
 ```bash
 cat > ~/.claude/hooks/pre-compact.sh << 'HOOK'
 #!/bin/bash
-echo "Auto-generating diary entry before compact..."
-echo "/diary"
+PROJECT=$(basename "$(pwd)")
+DATE=$(date +%Y-%m-%d)
+TIME=$(date +%H:%M)
+N=1
+while [ -f "$HOME/.claude/memory/diary/${DATE}-${PROJECT}-session-${N}.md" ]; do
+  N=$((N+1))
+done
+DIARY_PATH="$HOME/.claude/memory/diary/${DATE}-${PROJECT}-session-${N}.md"
+mkdir -p "$HOME/.claude/memory/diary"
+cat <<INSTRUCTIONS
+COMPACTION NOTICE: The conversation is about to be compacted. Before generating
+your summary, write a diary entry for this session using the Write tool.
+
+Write the diary entry to this exact path: ${DIARY_PATH}
+
+Use the diary template from ~/.claude/commands/diary.md. Work from the conversation
+context still loaded — it is fully available now. The diary entry should include:
+- Date: ${DATE}, Time: ${TIME}, Project: ${PROJECT}
+- Task summary (what the user was trying to accomplish)
+- Work summary (what was accomplished, as bullet points)
+- Design decisions made and why
+- Challenges encountered and solutions applied
+- User preferences observed during the session
+
+After writing the diary, proceed with your normal compaction summary.
+
+IMPORTANT: Use the Write tool to create the file at ${DIARY_PATH}. Do not skip
+this step — diary entries from compacted sessions are otherwise permanently lost.
+INSTRUCTIONS
 HOOK
 chmod +x ~/.claude/hooks/pre-compact.sh
 ```
