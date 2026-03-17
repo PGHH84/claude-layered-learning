@@ -146,25 +146,22 @@ for the `/reflect` command to mine later for cross-session patterns.
 This step always runs — even for short or routine sessions. Diary entries
 are cheap; missing data is expensive.
 
-### PreCompact diary capture
+### PreCompact hook design
 
-The `PreCompact` hook (`~/.claude/hooks/pre-compact.sh`) is designed to capture
-a diary entry automatically when the conversation is compacted mid-session. It
-works by:
+The `PreCompact` hook (`~/.claude/hooks/pre-compact.sh`) automatically
+writes a full diary entry when context is compacted — no manual completion
+needed. The entry follows the standard diary template so `/reflect` can
+process it like any other entry.
 
-1. Computing the diary file path in bash (date + project + session number)
-2. Outputting explicit Write tool instructions to Claude with the exact path
+**What it captures:** date, time, project, branch, recent commits, uncommitted
+changes, staged changes, modified files, untracked files.
 
-**Why this design:** Echoing `/diary` does not work — during compaction Claude
-does not invoke the Skill tool pipeline. The hook must eliminate all multi-step
-tool calls; Claude during compaction can do a single Write call but won't load
-a skill first. By pre-computing the path in bash and inlining the instructions,
-the hook reduces the requirement to one Write tool call.
+**What it can't capture:** conversation context (design decisions, challenges,
+user preferences). These sections are marked "Not available" in the entry.
 
-**Limitation:** If Claude Code does not allow Write tool calls during compaction,
-the diary will still be missed. In that case the fallback is: run `/diary` manually
-at the start of the next session using the JSONL fallback path documented in
-`~/.claude/commands/diary.md`.
+**Why bash writes directly:** Claude cannot execute tool calls during
+compaction. The bash hook writing the diary file directly is the only
+reliable approach.
 
 ## Final Step: Push
 
