@@ -9,6 +9,17 @@ Format: [Semantic Versioning](https://semver.org/) — `MAJOR.MINOR.PATCH`
 
 ---
 
+## [1.1.3] - 2026-03-17
+
+### Fixed
+- **PreCompact hook rewritten**: now writes a full diary-template-structured
+  entry directly in bash using git data (commits, diffs, file lists) instead of
+  outputting Write tool instructions for Claude. Eliminates the two-phase stub
+  approach entirely — no manual completion step needed after compaction.
+- Updated wrap-up SKILL.md Phase 4 to document the new self-contained hook design.
+
+---
+
 ## [1.1.2] - 2026-03-17
 
 ### Added
