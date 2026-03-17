@@ -13,26 +13,24 @@ example steps with your own.
 
 ---
 
-## Phase 2 addition: Project status tracker
+## Example: append to a work log
 
-After updating MEMORY.md, also update your project status file:
+After updating MEMORY.md, append a one-line entry to `~/work-log.md`:
 
-1. Read `~/Developer/project-status.md`
-2. Find the entry for the current project
-   - If no entry exists, add one in the appropriate section (Active / Stable / Archive)
-3. Update these fields:
-   - **Status**: concise summary of where the project stands now
-   - **Last activity**: today's date
-   - **Next steps**: what's open or planned next
-   - **Backup**: "GitHub (repo-name)" or "Local only — sensitive, never push to GitHub"
-4. If the project's activity level has clearly changed, move it to the
-   appropriate section
+```
+## YYYY-MM-DD — [project name]
+- [one sentence: what was done]
+- Next: [one sentence: what's next]
+```
+
+Create the file if it doesn't exist.
 
 ---
 
 ## Other ideas for personal extensions
 
-- Post a summary to a private Slack channel or notes app
-- Update a personal Notion database with session metadata
-- Append to a local time-tracking log
-- Run a backup script for sensitive repos
+- Update a personal task board (Notion, Linear, Trello) with session outcomes
+- Post a summary to a private Slack channel or Teams message
+- Append to a time-tracking log with estimated hours
+- Run a backup script for sensitive local repos
+- Send yourself an email summary of what was completed
