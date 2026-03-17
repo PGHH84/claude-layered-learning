@@ -54,9 +54,9 @@ knowledge belongs in the memory hierarchy.
   session number (increment from previous), and a concise summary of what
   changed and what's open next
 
-**Personal extensions (optional):**
+**Personal extensions:**
 Check if `~/.claude/skills/wrap-up/personal.md` exists. If it does, read it
-and incorporate any additional Phase 2 steps it defines before continuing.
+and execute every step it defines before continuing. Do not skip this.
 
 **Memory placement guide:**
 - **Auto memory** (Claude writes for itself) — Debugging insights, patterns
