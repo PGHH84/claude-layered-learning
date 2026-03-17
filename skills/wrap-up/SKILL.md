@@ -57,6 +57,7 @@ knowledge belongs in the memory hierarchy.
 **Personal extensions:**
 Check if `~/.claude/skills/wrap-up/personal.md` exists. If it does, read it
 and execute every step it defines before continuing. Do not skip this.
+See `examples/personal.md` in this repo for a template and setup instructions.
 
 **Memory placement guide:**
 - **Auto memory** (Claude writes for itself) — Debugging insights, patterns

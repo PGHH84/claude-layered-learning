@@ -9,6 +9,17 @@ Format: [Semantic Versioning](https://semver.org/) — `MAJOR.MINOR.PATCH`
 
 ---
 
+## [1.1.2] - 2026-03-17
+
+### Added
+- `examples/personal.md`: template and setup instructions for the personal
+  extensions hook. Shows how to create `~/.claude/skills/wrap-up/personal.md`
+  with example steps (project status tracker, other workflow ideas).
+- Wrap-up skill now points to `examples/personal.md` so users know the feature
+  exists and where to find the template.
+
+---
+
 ## [1.1.1] - 2026-03-17
 
 ### Fixed
