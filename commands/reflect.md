@@ -228,16 +228,16 @@ FORMAT REQUIREMENTS:
 ### 6. Present proposal and apply updates
 
 **Approval model:**
-- **Project CLAUDE.md changes**: auto-apply immediately
-- **Global `~/.claude/CLAUDE.md` changes**: present the proposed changes and
-  wait for user approval. The user may approve all, some, or none.
+- **All CLAUDE.md changes require approval** — present proposed changes for
+  both global (`~/.claude/CLAUDE.md`) and project-level CLAUDE.md files,
+  then wait for user approval. The user may approve all, some, or none.
 
 **Show the full proposal:**
 - Strengthened rules (before/after)
 - Global rules to add (require approval)
-- Project-specific rules to add (auto-applied)
+- Project-specific rules to add (require approval)
 
-**After approval, apply in priority order:**
+**After approval, apply only the approved changes in priority order:**
 
 1. **Strengthen violated rules** — edit in place, add emphasis/override language
 2. **Add GLOBAL rules to `~/.claude/CLAUDE.md`** — append to appropriate sections
@@ -248,7 +248,7 @@ FORMAT REQUIREMENTS:
    - If CLAUDE.md exists: find appropriate section (or create "## Learned Patterns"), append
    - If no CLAUDE.md: create with template including "## Learned Patterns"
    - Check for semantic duplicates and conflicts with global rules
-   - Flag conflicts for user review instead of auto-adding
+   - Flag conflicts for user review instead of adding
 
 **Update processed.log** immediately after applying:
 ```
