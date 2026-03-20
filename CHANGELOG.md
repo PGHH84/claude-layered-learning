@@ -9,6 +9,12 @@ Format: [Semantic Versioning](https://semver.org/) — `MAJOR.MINOR.PATCH`
 
 ---
 
+## [1.2.0] - 2026-03-20
+
+### Changed
+- **Reflect command**: all CLAUDE.md updates now require user approval, including
+  project-level changes (previously auto-applied).
+
 ## [1.1.3] - 2026-03-17
 
 ### Fixed
