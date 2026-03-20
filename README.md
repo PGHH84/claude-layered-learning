@@ -32,7 +32,7 @@ Wrap-up (immediate loop)
     |-- Cross-session analysis with frequency thresholds
     |-- Routes rules: global CLAUDE.md vs project CLAUDE.md
     |-- Checks prior reflections for recurring one-off observations
-    |-- Project-level changes auto-apply; global changes require approval
+    |-- All CLAUDE.md changes require user approval
     |
     v
 CLAUDE.md loads into every session (retrieval layer)
@@ -43,7 +43,7 @@ CLAUDE.md loads into every session (retrieval layer)
 
 | Destination | Immediate loop (wrap-up) | Deferred loop (reflect) |
 |---|---|---|
-| Project CLAUDE.md | Yes (auto-apply) | Yes (auto-apply) |
+| Project CLAUDE.md | Yes (auto-apply) | Yes (with approval) |
 | Global ~/.claude/CLAUDE.md | Yes (with approval) | Yes (with approval) |
 | .claude/rules/ | Yes | No |
 | Hooks / Skills | Documents specs | No |
