@@ -83,7 +83,7 @@ For the full setup (PreCompact hook, troubleshooting, updating, uninstalling), s
 /reflect                                    # All unprocessed entries
 /reflect last 20 entries                    # More entries
 /reflect from 2026-01-01 to 2026-03-31     # Date range
-/reflect for project ~/Developer/my-app     # Single project
+/reflect for project ~/Vault/30_Projects/my-project     # Single project
 /reflect related to testing                 # Keyword filter
 /reflect include all entries                # Re-analyze everything
 ```

@@ -2,6 +2,6 @@
 
 ## Notes
 
-- [[50_Developer/55_Claude-Layered-Learning/examples/personal]]
-- [[50_Developer/55_Claude-Layered-Learning/examples/sample-diary-entry]]
-- [[50_Developer/55_Claude-Layered-Learning/examples/sample-reflection]]
+- [[examples/personal]]
+- [[examples/sample-diary-entry]]
+- [[examples/sample-reflection]]
