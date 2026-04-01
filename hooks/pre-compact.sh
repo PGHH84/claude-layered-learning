@@ -1,101 +1,122 @@
-#!/bin/bash
-# Auto-generate diary entry before Claude Code compacts conversation.
-#
-# Limitation: Claude does NOT execute tool calls during compaction. This hook
-# writes a full diary entry directly in bash using git data. The entry follows
-# the standard diary template so /reflect can process it like any other entry.
-# Conversation-only sections (design decisions, challenges, user preferences)
-# are marked as not available.
+#!/usr/bin/env bash
 
-PROJECT=$(basename "$(pwd)")
-DATE=$(date +%Y-%m-%d)
-TIME=$(date +%H:%M)
-BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
-LAST_COMMIT=$(git log --oneline -1 2>/dev/null || echo "unknown")
+set -euo pipefail
 
-# Gather git context for richer diary content
-RECENT_COMMITS=$(git log --oneline -10 2>/dev/null || echo "none available")
-UNCOMMITTED_CHANGES=$(git diff --stat 2>/dev/null)
-STAGED_CHANGES=$(git diff --cached --stat 2>/dev/null)
-CHANGED_FILES=$(git diff --name-only 2>/dev/null; git diff --cached --name-only 2>/dev/null)
-UNTRACKED_FILES=$(git ls-files --others --exclude-standard 2>/dev/null)
+resolve_project_root() {
+  local root
 
-# Build work summary from git data
+  if root="$(git rev-parse --show-toplevel 2>/dev/null)"; then
+    if [[ "$root" == *"/.worktrees/"* ]]; then
+      root="${root%%/.worktrees/*}"
+    fi
+  else
+    root="$(pwd)"
+  fi
+
+  (cd "$root" && pwd -P)
+}
+
+PROJECT_ROOT="$(resolve_project_root)"
+PROJECT_SLUG="${PROJECT_ROOT//\//-}"
+DATE="$(date +%Y-%m-%d)"
+TIME="$(date +%H:%M)"
+BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")"
+LAST_COMMIT="$(git log --oneline -1 2>/dev/null || echo "unknown")"
+
+RECENT_COMMITS="$(git log --oneline -10 2>/dev/null || echo "none available")"
+UNCOMMITTED_CHANGES="$(git diff --stat 2>/dev/null || true)"
+STAGED_CHANGES="$(git diff --cached --stat 2>/dev/null || true)"
+CHANGED_FILES="$(
+  {
+    git diff --name-only 2>/dev/null || true
+    git diff --cached --name-only 2>/dev/null || true
+  } | sort -u
+)"
+UNTRACKED_FILES="$(git ls-files --others --exclude-standard 2>/dev/null || true)"
+
 WORK_SUMMARY=""
-if [ -n "$RECENT_COMMITS" ] && [ "$RECENT_COMMITS" != "none available" ]; then
+if [[ -n "$RECENT_COMMITS" && "$RECENT_COMMITS" != "none available" ]]; then
   WORK_SUMMARY="### Recent commits this session:\n$(echo "$RECENT_COMMITS" | sed 's/^/- /')"
 fi
-if [ -n "$UNCOMMITTED_CHANGES" ]; then
+if [[ -n "$UNCOMMITTED_CHANGES" ]]; then
   WORK_SUMMARY="${WORK_SUMMARY}\n\n### Uncommitted changes:\n\`\`\`\n${UNCOMMITTED_CHANGES}\n\`\`\`"
 fi
-if [ -n "$STAGED_CHANGES" ]; then
+if [[ -n "$STAGED_CHANGES" ]]; then
   WORK_SUMMARY="${WORK_SUMMARY}\n\n### Staged changes:\n\`\`\`\n${STAGED_CHANGES}\n\`\`\`"
 fi
 
-# Build actions taken from file lists
 ACTIONS=""
-if [ -n "$CHANGED_FILES" ]; then
-  ACTIONS="- Files modified:\n$(echo "$CHANGED_FILES" | sort -u | sed 's/^/  - /')"
+if [[ -n "$CHANGED_FILES" ]]; then
+  ACTIONS="- Files modified:\n$(echo "$CHANGED_FILES" | sed 's/^/  - /')"
 fi
-if [ -n "$UNTRACKED_FILES" ]; then
+if [[ -n "$UNTRACKED_FILES" ]]; then
   ACTIONS="${ACTIONS}\n- Files created (untracked):\n$(echo "$UNTRACKED_FILES" | sed 's/^/  - /')"
 fi
 
-# Find next available session number
+mkdir -p "$HOME/.claude/memory/diary"
 N=1
-while [ -f "$HOME/.claude/memory/diary/${DATE}-${PROJECT}-session-${N}.md" ]; do
+while [[ -f "$HOME/.claude/memory/diary/${DATE}-${PROJECT_SLUG}-session-${N}.md" ]]; do
   N=$((N+1))
 done
-DIARY_PATH="$HOME/.claude/memory/diary/${DATE}-${PROJECT}-session-${N}.md"
+DIARY_PATH="$HOME/.claude/memory/diary/${DATE}-${PROJECT_SLUG}-session-${N}.md"
 
-# Ensure diary directory exists
-mkdir -p "$HOME/.claude/memory/diary"
-
-# Write full diary entry directly — follows standard diary template
 cat > "$DIARY_PATH" <<DIARY
 # Session Diary Entry
 
 **Date**: ${DATE}
 **Time**: ${TIME}
-**Project**: $(pwd)
+**Project**: ${PROJECT_ROOT}
 **Git Branch**: ${BRANCH}
+**Session**: ${N}
 **Source**: auto-compact (captured by PreCompact hook — no conversation context available)
 
 ## Task Summary
-Session was auto-compacted before wrap-up. Task details not available from git context alone.
+Session was auto-compacted before wrap-up. Task details were not available from git context alone.
 Last commit: ${LAST_COMMIT}
+
+## Time
+- Session timing: compacted at ${TIME}
+- Sequence or milestones: captured from repo state only
 
 ## Work Summary
 $(echo -e "$WORK_SUMMARY")
 
 ## Design Decisions Made
-Not available — requires conversation context.
+- Not available from git context alone.
 
 ## Actions Taken
-$(if [ -n "$ACTIONS" ]; then echo -e "$ACTIONS"; else echo "No uncommitted file changes detected at compaction time."; fi)
+$(if [[ -n "$ACTIONS" ]]; then echo -e "$ACTIONS"; else echo "- No file-level changes detected at compaction time."; fi)
+- Commands executed: not available from git context alone
+- Verification performed: not available from git context alone
 
 ## Challenges Encountered
-Not available — requires conversation context.
+- Not available from git context alone.
 
 ## Solutions Applied
-Not available — requires conversation context.
+- Not available from git context alone.
 
 ## User Preferences Observed
-Not available — requires conversation context.
+
+### Communication & Workflow
+- Not available from git context alone.
+
+### Code Quality Preferences
+- Not available from git context alone.
+
+### Technical Preferences
+- Not available from git context alone.
 
 ## Code Patterns and Decisions
-Not available — requires conversation context.
+- Not available from git context alone.
 
 ## Context and Technologies
-- **Project**: ${PROJECT}
-- **Branch**: ${BRANCH}
-- **Working directory**: $(pwd)
+- Canonical project root: ${PROJECT_ROOT}
+- Project slug: ${PROJECT_SLUG}
+- Branch: ${BRANCH}
 
 ## Notes
-This diary entry was auto-generated by the PreCompact hook during context compaction.
-Git data was captured but conversation context (design decisions, challenges, preferences)
-was not available. This entry can still be mined by /reflect for commit patterns and
-file change activity.
+- This diary entry was auto-generated by the PreCompact hook during context compaction.
+- Git data was captured, but conversation context was not available.
 DIARY
 
-echo "Auto-diary written to ${DIARY_PATH}"
+printf 'Auto-diary written to %s\n' "$DIARY_PATH"

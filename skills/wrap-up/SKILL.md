@@ -7,166 +7,197 @@ description: Use when user says "wrap up", "close session", "end session",
 
 # Session Wrap-Up
 
-Run three phases in order, then capture a diary entry. Each phase is
-conversational and inline — no separate documents. Most steps auto-apply;
-exceptions are called out explicitly. Present a consolidated report at the end.
+Run four phases in order:
 
-## Phase 1: Ship It
+1. `Ship It`
+2. `Remember It`
+3. `Review & Apply`
+4. `Diary Capture`
 
-**Documentation sync (before commit):**
-1. Review the diff in each repo touched during the session
-2. If the change affects project-maintained docs (README, changelog, runbooks,
-   setup guides), update only the documents directly affected
-3. Do not make speculative or unrelated doc edits
-4. If no docs are affected, skip this step
+Present a consolidated report at the end. Do not add a final push prompt.
 
-**Commit:**
-1. Run `git status` in each repo directory that was touched during the session
-2. If uncommitted changes exist, invoke the `/commit` skill if available;
-   otherwise auto-commit with a descriptive message
+## Model Selection
 
-**File placement check:**
-1. If any files were created or saved during this session:
-   - Verify they follow your naming convention
-   - Auto-fix naming violations (rename the file)
-   - Verify they're in the correct subfolder per your project structure
-   - Auto-move misplaced files to their correct location
-2. If any document-type files (.md, .docx, .pdf, .xlsx, .pptx) were created
-   at the workspace root or in code directories, move them to the docs folder
-   if they belong there
+Wrap-up is mechanical work. Use the cheapest capable model available.
 
-**Deploy:**
-1. Check if the project has a deploy skill or script
-2. If one exists, run it
-3. If not, skip deployment entirely — do not ask about manual deployment
+## Hard Safety Boundaries
 
-**Task cleanup:**
-1. Check the task list for in-progress or stale items
-2. Mark completed tasks as done, flag orphaned ones
+- never create repo-local runtime memory folders in working repositories
+- never edit repo `AGENTS.md` directly as an operating-instruction source
+- never edit repo `CLAUDE.md` directly when the repo uses the `PROJECT.md` / `CLAUDE.md` / `AGENTS.md` triumvirate
+- never edit `~/.claude/CLAUDE.md` or `~/.codex/AGENTS.md` directly when a generated mirror path should be used
+- never write arbitrary `~/.codex/**` state outside the approved global mirror-sync path
+- never auto-apply global canonical edits or new-skill changes without approval
+- never do speculative doc edits, speculative file moves, or destructive cleanup
 
-## Phase 2: Remember It
+## Runtime Paths
 
-Review what was learned during the session. Decide where each piece of
-knowledge belongs in the memory hierarchy.
+- project memory: `~/.claude/projects/<slug>/memory/MEMORY.md`
+- diary output: `~/.claude/memory/diary/`
+- reflections: `~/.claude/memory/reflections/`
+- project operating guidance source: repo `PROJECT.md`
+- global operating guidance source: `~/.agents/global/PROJECT.md`
+- generated global mirrors: `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`
+- optional personal extension: `~/.claude/skills/wrap-up/personal.md`
 
-**Always do first:**
-- Update the `Current state` section in MEMORY.md with today's date, the
-  session number (increment from previous), and a concise summary of what
-  changed and what's open next
+## Path-To-Slug Transform
 
-**Personal extensions:**
-Check if `~/.claude/skills/wrap-up/personal.md` exists. If it does, read it
-and execute every step it defines before continuing. Do not skip this.
-See `examples/personal.md` in this repo for a template and setup instructions.
+Use this exact transform so `wrap-up`, `/diary`, `/reflect`, and the
+PreCompact hook agree on project identity:
 
-**Memory placement guide:**
-- **Auto memory** (Claude writes for itself) — Debugging insights, patterns
-  discovered during the session, project quirks
-- **Project CLAUDE.md** — Permanent project-specific rules, conventions,
-  commands, architecture decisions that should guide all future sessions
-- **`.claude/rules/`** (modular project rules) — Topic-specific instructions
-  that apply to certain file types or areas. Use `paths:` frontmatter to scope
-  rules to relevant files (e.g., testing rules scoped to `tests/**`)
-- **`CLAUDE.local.md`** (private per-project notes) — Personal WIP context,
-  local URLs, sandbox credentials, current focus areas that shouldn't be
-  committed
-- **`@import` references** — When a CLAUDE.md would benefit from referencing
-  another file rather than duplicating its content
+1. If inside a git repository, resolve the canonical project root with `git rev-parse --show-toplevel`.
+2. If that repo root contains `/.worktrees/`, strip the `/.worktrees/<name>` suffix and use the parent repo path as the canonical project root.
+3. Otherwise, if not inside a git repository, use the canonical absolute working directory.
+4. Resolve symlinks before deriving the slug.
+5. Replace every `/` in the canonical absolute path with `-`.
 
-**Decision framework:**
-- Is it a permanent project convention? → Project CLAUDE.md or `.claude/rules/`
-- Is it scoped to specific file types? → `.claude/rules/` with `paths:` frontmatter
-- Is it a pattern or insight Claude discovered? → Auto memory
-- Is it personal/ephemeral context? → `CLAUDE.local.md`
-- Is it duplicating content from another file? → Use `@import` instead
+## Phase 1: `Ship It`
 
-Note anything important in the appropriate location.
+### Documentation sync
 
-## Phase 3: Review & Apply
+1. Review the diff in each repo touched during the session.
+2. If the change affects project-maintained docs such as README, changelog, setup guides, runbooks, or verification docs, update only the documents directly affected.
+3. If no project-maintained docs were directly affected, skip this step.
 
-Analyze the conversation for self-improvement findings. Be brutally honest —
-the default tendency is to say "nothing to improve" to avoid friction. Fight
-that. Ask yourself: "If the user challenged me right now with 'are you sure
-there are no improvements?', would I find something?" If yes, you already
-have a finding — write it down.
+### Commit
 
-Only say "Nothing to improve" if the session was genuinely short (under 5
-exchanges) or purely informational (no code, no decisions, no corrections).
+1. Run `git status` in each repo touched during the session.
+2. If uncommitted changes exist, use the repo's normal commit path.
+3. If no `/commit` skill exists, use normal git commands directly.
+4. If the working directory is not inside a git repository, skip commit with `n/a`.
 
-**Auto-apply all actionable findings immediately**, except:
-- **Global `~/.claude/CLAUDE.md` changes** — show the proposed change and
-  wait for approval before editing
+### File placement check
 
-**Finding categories:**
-- **Skill gap** — Things Claude struggled with, got wrong, or needed multiple
-  attempts
-- **Friction** — Repeated manual steps, things user had to ask for explicitly
-  that should have been automatic
-- **Knowledge** — Facts about projects, preferences, or setup that Claude
-  didn't know but should have
-- **Automation** — Repetitive patterns that could become skills, hooks, or
-  scripts
+1. If files were created or saved during the session, verify that obvious naming and placement rules were followed.
+2. Auto-fix only obvious violations:
+   - document-type files created at repo root or code directories that clearly belong in docs
+   - files that clearly violate an existing documented convention
+3. If file placement conventions are not documented, avoid speculative renames or moves.
 
-**Action types:**
-- **Project CLAUDE.md** — Edit the project's own `CLAUDE.md` for project-specific
-  conventions, commands, and architecture decisions
-- **Global CLAUDE.md** (`~/.claude/CLAUDE.md`) — Only for genuinely cross-project
-  behavioral changes. Always confirm before editing.
-- **Rules** — Create or update a `.claude/rules/` file
-- **Auto memory** — Save an insight for future sessions
-- **Skill / Hook** — Document a new skill or hook spec for implementation
-- **CLAUDE.local.md** — Create or update per-project local memory
+### Deploy
 
-Present a summary after applying, in two sections — applied items first,
-then no-action items:
+1. Check whether the project has a documented deploy script or deploy skill.
+2. If one exists, run it.
+3. If none exists, skip deploy without asking for a manual deploy path.
 
-Findings (applied):
+### Task cleanup
 
-1. ✅ Skill gap: Cost estimates were wrong multiple times
-   → [Project CLAUDE.md] Added token counting reference table
+1. Check the repo's task surface if one exists.
+2. Mark completed tasks done and flag stale or orphaned ones.
+3. If no task file or documented task surface exists, skip task cleanup and report that no project task surface was found.
 
-2. ✅ Knowledge: Worker crashes on 429/400 instead of retrying
-   → [Rules] Added error-handling rules for worker
+## Phase 2: `Remember It`
 
-3. ✅ Automation: Checking service health after deploy is manual
-   → [Skill] Created post-deploy health check skill spec
+### Always do first
 
----
-No action needed:
+Update `~/.claude/projects/<slug>/memory/MEMORY.md` with:
 
-4. Knowledge: Discovered X works this way
-   Already documented in CLAUDE.md
+- `## Current State`
+- `**Last updated:**`
+- `**Session:**`
+- `**Next steps:**`
+- `## Key Notes`
 
-## Phase 4: Diary Capture
+Keep `Current State` to a short 2-5 line snapshot and `Next steps` to a short numbered list.
 
-After Phases 1-3 are complete, invoke the `/diary` command to capture a
-structured diary entry for this session. The diary entry is raw material
-for the `/reflect` command to mine later for cross-session patterns.
+### Session number source of truth
 
-This step always runs — even for short or routine sessions. Diary entries
-are cheap; missing data is expensive.
+- preferred source of truth: `~/.claude/projects/<slug>/memory/MEMORY.md`
+- fallback: scan matching diary files for the same project and date only when `MEMORY.md` is missing or uninitialized
+- `wrap-up` must set or confirm the session number in `MEMORY.md` before triggering `/diary`
+- when `wrap-up` invokes `/diary`, both steps must use the same session number instead of incrementing independently
 
-### PreCompact hook design
+### Personal extensions
 
-The `PreCompact` hook (`~/.claude/hooks/pre-compact.sh`) automatically
-writes a full diary entry when context is compacted — no manual completion
-needed. The entry follows the standard diary template so `/reflect` can
-process it like any other entry.
+Check whether `~/.claude/skills/wrap-up/personal.md` exists.
 
-**What it captures:** date, time, project, branch, recent commits, uncommitted
-changes, staged changes, modified files, untracked files.
+- if present, follow it as a machine-local instruction file under normal approval and safety rules
+- it is an extension point, not an override mechanism
+- if absent, continue silently
+- if unclear or blocked, report that briefly and continue
 
-**What it can't capture:** conversation context (design decisions, challenges,
-user preferences). These sections are marked "Not available" in the entry.
+If the personal-extension pass materially changes tracked project state, reconcile `MEMORY.md` so it reflects the final post-extension state.
 
-**Why bash writes directly:** Claude cannot execute tool calls during
-compaction. The bash hook writing the diary file directly is the only
-reliable approach.
+### Memory placement guide
 
-## Final Step: Push
+Use this mapping when deciding where learned material belongs:
 
-After everything is complete (ship, remember, review, diary), ask:
-"Push to remote? (y/n)"
+- current-session state and discovered project facts -> `MEMORY.md`
+- project-local operating rules and conventions -> repo `PROJECT.md`
+- scoped file-type or area-specific instructions -> `.claude/rules/`
+- private per-project local notes -> `CLAUDE.local.md`
+- cross-project behavior rules -> `~/.agents/global/PROJECT.md`
+- reusable procedural workflows -> skill or hook candidate
 
-If yes, push all committed changes. If no or no response, skip — the user
-can push later or just close the session.
+### Approval matrix for this phase
+
+- auto-apply:
+  - `MEMORY.md` current-state update
+  - repo docs directly affected by session work
+  - commit creation when uncommitted changes exist
+  - deploy when a documented deploy path exists
+  - repo-owned task cleanup
+  - repo `PROJECT.md` updates for local operating improvements
+  - `.claude/rules/` updates when the destination is clearly a scoped local rule
+  - `CLAUDE.local.md` updates when the destination is clearly private local context
+- require approval:
+  - `~/.agents/global/PROJECT.md` edits
+  - new skill or hook creation
+
+When an approved global canonical edit is applied, run `~/.agents/global/sync_global_instructions.sh` immediately afterward so `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md` stay aligned.
+
+## Phase 3: `Review & Apply`
+
+Analyze the current session for self-improvement findings.
+
+Only say `Nothing to improve` when the session was genuinely short or purely informational.
+
+Finding categories:
+
+- `Skill gap`
+- `Friction`
+- `Knowledge`
+- `Automation`
+
+Action types:
+
+- repo doc update
+- repo `PROJECT.md` update
+- `.claude/rules/` update
+- `CLAUDE.local.md` update
+- global `~/.agents/global/PROJECT.md` candidate
+- skill or hook candidate
+- no action needed
+
+Rules:
+
+- prioritize repeated violation of an existing rule over inventing a new rule
+- strengthen existing guidance before proposing a parallel duplicate
+- auto-apply only actions allowed by the approval matrix
+- present approval-gated items as targeted proposals with destination and rationale
+- do not route project-local operating improvements to repo `AGENTS.md` or repo `CLAUDE.md`
+
+Present findings in two sections:
+
+- `Findings (applied)`
+- `No action needed`
+
+## Phase 4: `Diary Capture`
+
+After Phases 1-3 are complete, invoke the installed `/diary` command to capture a structured diary entry for this session.
+
+Rules:
+
+- this step always runs
+- `wrap-up` must not fold reflection logic into the diary step
+- `/diary` still runs when the personal extension is absent
+- `/diary` still runs when approval-gated durable changes were declined
+- `/diary` still runs when some wrap-up steps were skipped with documented fallback status
+
+## Completion
+
+Session is complete after the diary is captured.
+
+- do not add a final push prompt
+- do not push automatically
+- the user handles any later git push manually

@@ -1,324 +1,249 @@
 ---
-description: Analyze diary entries to identify cross-session patterns and propose CLAUDE.md updates
+description: Analyze diary entries to identify cross-session patterns and propose durable updates to repo PROJECT.md and canonical global instructions
 ---
 
 # Reflect on Diary Entries and Synthesize Insights
 
 Analyze accumulated diary entries to identify recurring patterns across sessions
-and projects, then propose updates to CLAUDE.md files. This is the cross-session
-pattern recognition step — it sees what single-session wrap-ups cannot.
+and projects, then route durable learnings to the canonical local or global
+instruction source.
 
-Reflect ONLY proposes changes to CLAUDE.md files (global and project-level).
-It does not touch `.claude/rules/`, hooks, skills, or auto memory — those are
-handled by the immediate learning loop in wrap-up.
+`/reflect`:
+
+- reads diary entries and supporting memory
+- identifies repeated patterns, rule violations, contradictions, and one-off observations
+- proposes durable promotions to repo `PROJECT.md` or `~/.agents/global/PROJECT.md`
+- applies approved durable promotions in the same reflection flow
 
 ## Parameters
 
 The user can provide:
+
 - **Date range**: "from YYYY-MM-DD to YYYY-MM-DD" or "last N days"
-- **Entry count**: "last N entries" (e.g., "last 10 entries")
+- **Entry count**: "last N entries" (for example "last 10 entries")
 - **Project filter**: "for project [project-path]"
-- **Pattern filter**: "related to [keyword]" (e.g., "related to testing")
+- **Pattern filter**: "related to [keyword]"
 
 Default: analyze **all unprocessed diary entries**.
 
-## Steps
+## Runtime Paths
 
-### 1. Setup and gather entries
+- diary input: `~/.claude/memory/diary/`
+- reflections: `~/.claude/memory/reflections/`
+- processed index: `~/.claude/memory/reflections/processed.log`
+- project memory: `~/.claude/projects/<slug>/memory/MEMORY.md`
+- project operating guidance source: repo `PROJECT.md`
+- global operating guidance source: `~/.agents/global/PROJECT.md`
+- generated global mirrors: `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`
 
-```bash
-mkdir -p ~/.claude/memory/diary ~/.claude/memory/reflections
-```
+## Path-To-Slug Transform
 
-- Read `~/.claude/memory/reflections/processed.log` (if missing, create it)
-- List entries in `~/.claude/memory/diary/` sorted by date (newest first)
-- Entries named: `YYYY-MM-DD-[project]-session-N.md`
-- Exclude already-processed entries (unless user requests re-analysis)
-- Apply any user-specified filters (date range, project, keyword)
-- Read each filtered diary entry, extracting from all sections, especially:
-  - User Preferences Observed
-  - Code Patterns and Decisions
-  - Actions Taken
-  - Solutions Applied (what works well)
-  - Challenges Encountered (what to avoid)
-- If a section is missing: skip it (don't fail), note in Metadata
-- Read the **One-Off Observations** section from the last 3 reflections in
-  `~/.claude/memory/reflections/` (fewer if less exist). If any current
-  pattern was previously flagged as a one-off, count those prior occurrences
-  toward the frequency threshold. Example: a preference appeared 2x in this
-  batch + was a one-off in a prior reflection = 3 occurrences → high confidence.
+Use this exact transform so `/reflect`, `/diary`, `wrap-up`, and the PreCompact
+hook agree on project identity:
 
-### 2. Read existing CLAUDE.md files
+1. If inside a git repository, resolve the canonical project root with `git rev-parse --show-toplevel`.
+2. If that repo root contains `/.worktrees/`, strip the `/.worktrees/<name>` suffix and use the parent repo path as the canonical project root.
+3. Otherwise, if not inside a git repository, use the canonical absolute working directory.
+4. Resolve symlinks before deriving the slug.
+5. Replace every `/` in the canonical absolute path with `-`.
 
-- Read `~/.claude/CLAUDE.md` for existing global rules
-- For each unique project found in diary entries:
-  - Check if `[project-path]/CLAUDE.md` exists
-  - If it exists, read it for existing project-specific rules
-- Before proposing any rule later, check if the same intent already exists in
-  the relevant CLAUDE.md, even if worded differently. If a similar rule exists,
-  skip it or propose merging the two rather than adding a duplicate
+## Processing Workflow
 
-### 3. Analyze for patterns and rule violations
+1. Resolve the filter set and project slug mapping using the shared path-derived slug rule.
+2. Load matching diary entries from `~/.claude/memory/diary/`.
+3. Skip entries already listed in `processed.log` unless the user explicitly requests reprocessing.
+4. Read supporting context relevant to the filtered corpus:
+   - recent reflections
+   - `~/.claude/memory/reflections/processed.log`
+   - project `~/.claude/projects/<slug>/memory/MEMORY.md` when project context is relevant
+   - repo `PROJECT.md` when project operating-guidance candidates are being considered
+   - canonical global `~/.agents/global/PROJECT.md` when evaluating global promotion candidates
+5. Group repeated patterns, explicit rule violations, contradictions, and one-off observations.
+6. Carry forward recent one-off observations from prior reflections when the same signal reappears.
+7. Prioritize repeated violation of existing guidance over inventing a new rule.
+8. Route each repeated learning by scope and destination, strengthening weak existing guidance before proposing a brand-new durable rule.
+9. Write the reflection file to `~/.claude/memory/reflections/YYYY-MM-DD-reflection-N.md`.
+10. Present proposed durable edits with destination, evidence, and confidence.
+11. If the user approves any durable edits, apply them in the same flow.
+12. If approved global canonical edits were applied, run `~/.agents/global/sync_global_instructions.sh`.
+13. Update `processed.log` only after the user accepts the reflection pass as complete and any approved durable edits for that pass were applied.
 
-**Frequency analysis**: What preferences/patterns appear in multiple entries?
-**Consistency check**: Are preferences consistent or contradictory?
-**Context awareness**: Do patterns apply globally or to specific project types?
-**Signal vs. noise**: One-off requests vs. recurring patterns
+## Carry-Forward Rule
 
-**Rule Violation Detection** (HIGHEST PRIORITY):
-- Check if diary entries show violations of EXISTING CLAUDE.md rules
-- Look in "Challenges Encountered", "User Preferences Observed" sections
-- If user corrected Claude for violating an existing rule → rule needs STRENGTHENING
-- Strengthening actions: move to top, add emphasis, make explicit, add override language
+- read recent `One-Off Observations` before scoring new patterns
+- if a current signal matches a recent one-off observation, count that prior occurrence toward the current confidence threshold
+- use carry-forward only for clearly similar signals
+- note the carry-forward when it materially affects confidence
 
-**Global vs Project-Specific Classification**:
+## Rule Violation Priority
 
-For each pattern, classify using this decision test (ask in order):
+- check whether diary entries show the agent violating an existing global rule or project rule
+- repeated violation of an existing rule is higher priority than inventing a new rule
+- if patterns are contradictory, surface the contradiction instead of forcing a confident promotion
 
-1. Does this rule mention a SPECIFIC codebase? (file paths, service names)
-   - YES → PROJECT-SPECIFIC
-2. Is this a technology rule?
-   - Does user have MULTIPLE projects using this technology?
-     - YES → GLOBAL (Technology-Specific section)
-     - NO → PROJECT-SPECIFIC
-3. Would this rule make sense in a completely different project?
-   - YES → GLOBAL
-   - NO → PROJECT-SPECIFIC
+## Scope Routing
 
-**GLOBAL examples**:
-- "use conventional commits" — applies to all git repos
-- "never swallow exceptions silently" — applies to all code
-- "bash scripts: log functions MUST output to stderr" — technology rule across projects
+Use deterministic routing first and judgment only for edge cases.
 
-**PROJECT-SPECIFIC examples**:
-- "WebSocket endpoint is /ws/chat not /socket" — codebase-specific path
-- "Use get_screen() for Textual screens" — only one project uses Textual
-- "Lambda layer must include zod@3.25.76" — specific to this serverless project
+### Project-Specific Signals
 
-**When in doubt**: if a rule mentions specific file paths, service names, or
-custom conventions → PROJECT-SPECIFIC
+- mentions repo-specific paths, commands, services, architecture, or quirks
+- appears only inside one project corpus
+- would look out of place in unrelated projects
 
-### 4. Synthesize insights by category
+### Global Signals
 
-Focus on concise, actionable rules suitable for CLAUDE.md.
+- applies to behavior across repositories
+- repeats across multiple projects or sessions
+- reads like a general operating principle
 
-**PRIORITY: Rule Violations** (address first)
+### Technology-Specific Signals
 
-**A. Persistent Preferences** (2+ occurrences; 3+ = high confidence)
-- Commit style, code organization, testing workflows, tool choices
+- technology-specific patterns that recur across multiple projects can become global
+- technology-specific patterns limited to one project stay project-specific
+- technology choice alone does not force a global destination; repetition and scope still decide
 
-**B. Design Decisions That Worked** — successful approaches worth repeating
+## Confidence Rules
 
-**C. Anti-Patterns to Avoid** (2+ occurrences; 3+ = high confidence)
+- 1 occurrence: keep as a one-off observation only
+- 2 occurrences in one project: project candidate
+- 3 or more occurrences, or repetition across projects: global candidate
+- repeated violation of an existing rule raises promotion priority
 
-**D. Efficiency Lessons** — workflows, tools, processes that save time
+## Signal vs Noise
 
-**E. Project-Specific Patterns** — patterns for specific projects (routed to project CLAUDE.md)
+Treat a pattern as signal when it has durable evidence and future decision value.
 
-### 5. Generate reflection document
+Repeated signal examples:
 
-Save to `~/.claude/memory/reflections/YYYY-MM-DD-reflection-N.md`
+- the same operating-rule lesson appears in two diary entries for one project
+- the same cross-project workflow violation appears across multiple sessions
+- a technology-specific workflow repeats across multiple projects and reads like reusable guidance
 
-Scope guidance for large analyses (>20 entries):
-- Group similar patterns to avoid repetition
-- Focus on highest-confidence patterns (3+) first
-- Limit detailed examples to 3 per pattern
-- Target length: 300-800 lines
+Treat a pattern as noise when it is isolated, temporary, or not durable enough to promote.
 
-Use this exact template:
+Noise examples:
+
+- a one-off workaround tied to a single broken tool invocation
+- an abandoned idea that appears once and never returns
+- a transient preference that does not materially affect future execution
+
+## Approval Model
+
+No durable edit is automatic until the user approves it.
+
+- auto-write:
+  - reflection markdown file
+- require approval:
+  - repo `PROJECT.md` edits
+  - `~/.agents/global/PROJECT.md` edits
+  - new skill or hook creation
+- auto-run after approved global canonical edits:
+  - regenerate `~/.claude/CLAUDE.md`
+  - regenerate `~/.codex/AGENTS.md`
+- update `processed.log` only after the user accepts the reflection pass as complete and approved actions are resolved
+
+Every proposed promotion must include:
+
+- the proposed learning
+- supporting evidence
+- confidence
+- proposed destination
+- the reason for project-specific or global scope
+
+## `processed.log` Semantics
+
+- store processed diary entry identifiers in `~/.claude/memory/reflections/processed.log`
+- canonical line format: `<diary-filename> | <processed-date> | <reflection-filename> | accepted`
+- reflection acceptance is required before advancing `processed.log`
+- approved durable edits must be applied in the same flow before advancing `processed.log`
+- declining all durable edits does not block `processed.log` advancement if the user still accepts the reflection as complete
+- `include all entries` analyzes both processed and unprocessed entries for the selected scope without deleting prior reflections
+- targeted `reprocess` analyzes a named entry or filtered subset again when the user explicitly asks
+
+## Exact Template
 
 ```markdown
-# Reflection: [Date Range or "Last N Entries"]
+# Reflection: <scope>
 
-**Generated**: [YYYY-MM-DD HH:MM:SS]
-**Entries Analyzed**: [count]
-**Date Range**: [first-date] to [last-date]
-**Projects**: [list of projects or "All projects"]
+**Generated**: YYYY-MM-DD HH:MM
+**Entries Analyzed**: N
+**Date Range**: ...
+**Projects**: ...
 
 ## Summary
-[2-3 paragraph overview of key insights]
+...
 
-## CRITICAL: Rule Violations Detected
-[ONLY include if violations found. OMIT entirely if none.]
+## Rule Violations Detected
+[Omit this section if none.]
 
-**Rule**: [existing rule that was violated]
-**Violation Pattern**: [how it appeared — quote examples]
-**Frequency**: [X/Y entries]
-**Impact**: [why this is serious — user had to correct multiple times]
-**Root Cause**: [why the existing rule failed — too weak, buried in list, ambiguous wording]
-**Strengthening Action**: [specific changes]
+1. **Rule**: ...
+   - **Frequency**: ...
+   - **Violation pattern**: ...
+   - **Root Cause**: ...
+   - **Impact**: ...
+   - **Strengthening action**: ...
 
 ## Patterns Identified
 
-### A. Persistent Preferences (2+; 3+ = high confidence)
-1. **[Preference]** (X/Y entries)
-   - **Observation**: [what was preferred]
-   - **Confidence**: High/Medium/Low
-   - **CLAUDE.md rule**: `- [succinct rule]`
+### Persistent Preferences
+1. ...
 
-### B. Design Decisions That Worked
-1. **[Decision]**
-   - **What worked**: [description]
-   - **CLAUDE.md rule** (if generalizable): `- [succinct rule]`
+### Design Decisions That Worked
+1. ...
 
-### C. Anti-Patterns to Avoid (2+; 3+ = high confidence)
-1. **[Anti-pattern]** (X/Y entries)
-   - **What to do instead**: [alternative]
-   - **CLAUDE.md rule**: `- [avoid X, use Y instead]`
+### Anti-Patterns To Avoid
+1. ...
 
-### D. Efficiency Lessons
-1. **[Pattern]**
-   - **CLAUDE.md rule** (if applicable): `- [succinct rule]`
+### Project-Specific Patterns
+1. ...
 
-### E. Project-Specific Patterns
-1. **[Pattern]** (for [project path])
-   - **Target file**: `[project-path]/CLAUDE.md`
-   - **Rule to add**: `- [action]`
+## Efficiency Lessons
+1. ...
 
 ## Notable Mistakes and Learnings
-- **Mistake**: [what went wrong]
-  - **Learning**: [what was learned]
-  - **Prevention**: [how to avoid]
+1. ...
 
 ## One-Off Observations
-- [observations from single sessions — not patterns yet]
+- ...
 
-## Proposed CLAUDE.md Updates
+## Proposed Promotions
 
-FORMAT REQUIREMENTS:
-- Succinct, non-verbose (CLAUDE.md loads into every session)
-- Bullet points, imperative tone
-- No explanations — just the rule
-- Group related rules together
-- Use context markers when needed (e.g., "for Python:", "when testing:", "in React projects:")
+### Global canonical candidates
+- ...
 
-**Good example** (succinct, actionable):
-```markdown
-- git commits: use conventional format (feat:, fix:, refactor:, docs:, test:)
-- testing: always run tests before committing, ensure they pass
-- error handling: wrap async operations in try-catch; never use empty catch blocks
-```
+### Project `PROJECT.md` candidates
+- ...
 
-**Bad example** (too verbose):
-```markdown
-- When you are creating git commits, it's important to follow the conventional
-  commit format which includes prefixes like feat: for features, fix: for bug
-  fixes, refactor: for code refactoring, docs: for documentation changes, and
-  test: for test changes. This helps maintain consistency across the codebase.
-```
-
-### new GLOBAL rule (for `~/.claude/CLAUDE.md`)
-
-#### Section: [General Preferences / Code Quality / Git Workflow / etc.]
-- [Actionable rule 1]
-- [Actionable rule 2]
-
-### new PROJECT-SPECIFIC rule (for project CLAUDE.md files)
-
-#### Project: [project-path]
-**Target file**: `[project-path]/CLAUDE.md`
-- [Rule specific to this project]
+### Skill / hook candidates
+- ...
 
 ## Metadata
-- **Diary entries analyzed**: [list of filenames]
-- **Projects covered**: [list]
-- **Challenges documented**: [count]
+- Diary entries analyzed:
+- Prior one-offs carried forward:
+- Reprocessing requested:
+- Processed log status:
+- Processed log entries to append:
 ```
 
-### 6. Present proposal and apply updates
+## Completion Summary
 
-**Approval model:**
-- **All CLAUDE.md changes require approval** — present proposed changes for
-  both global (`~/.claude/CLAUDE.md`) and project-level CLAUDE.md files,
-  then wait for user approval. The user may approve all, some, or none.
+At the end, report:
 
-**Show the full proposal:**
-- Strengthened rules (before/after)
-- Global rules to add (require approval)
-- Project-specific rules to add (require approval)
-
-**After approval, apply only the approved changes in priority order:**
-
-1. **Strengthen violated rules** — edit in place, add emphasis/override language
-2. **Add GLOBAL rules to `~/.claude/CLAUDE.md`** — append to appropriate sections
-   (create sections if needed), maintain succinct bullet-point format
-3. **Add PROJECT-SPECIFIC rules to project CLAUDE.md files**:
-   - Only write to project paths mentioned in diary entries
-   - Verify the directory exists; never write outside user's workspace
-   - If CLAUDE.md exists: find appropriate section (or create "## Learned Patterns"), append
-   - If no CLAUDE.md: create with template including "## Learned Patterns"
-   - Check for semantic duplicates and conflicts with global rules
-   - Flag conflicts for user review instead of adding
-
-**Update processed.log** immediately after applying:
-```
-[diary-filename] | [YYYY-MM-DD] | [reflection-filename]
-```
-
-### 7. Completion summary
-
-- Rule violations detected and strengthened (if any)
-- Reflection filename and location
-- Pattern count (global vs project-specific)
-- Global CLAUDE.md sections updated (with approval status)
-- Project CLAUDE.md files updated with rule count
+- rule violations detected and strengthened
+- reflection filename and location
+- pattern count (global vs project-specific)
+- whether repo `PROJECT.md` edits were proposed or applied
+- whether canonical global edits were proposed or applied
+- whether mirror sync ran
 - processed.log confirmation
-
-## Pattern Recognition Principles
-
-1. **Frequency**: 2+ = propose rule; 3+ = high confidence; 1 = document only
-2. **Context**: universal → GLOBAL; tech across projects → GLOBAL; single project → PROJECT-SPECIFIC
-3. **Consistency**: flag contradictions for user review
-4. **Actionability**: only propose rules Claude can follow
-5. **Abstraction**: not too specific, not too broad
-6. **Succinctness**: one-line bullets, imperative tone, no explanations
-7. **Value**: will this rule actually improve future interactions? Skip rules that document the obvious or add noise without changing behavior
-
-### Distinguishing Signal from Noise
-
-**SIGNAL** (add to CLAUDE.md):
-- "Always use TypeScript strict mode" (appears in 5 sessions across 3 projects)
-- "Run tests before committing" (appears in 6 sessions)
-- "Never swallow exceptions silently" (appears in 4 sessions)
-
-**NOISE** (document in One-Off Observations, don't add to CLAUDE.md):
-- "Make this button pink" (appears once, specific task)
-- "Use dark mode for this demo" (appears once, context-specific)
-- "Skip tests this time" (contradicted by usual pattern)
-
-## Handling Already-Processed Entries
-
-**Default**: Skip entries already in `~/.claude/memory/reflections/processed.log`
-
-**Override flags**:
-- "include all entries" — re-analyze everything including processed
-- "reprocess [filename]" — re-analyze specific entry
-- "last N entries including processed" — analyze N most recent, even if processed
-
-**When to suggest re-processing**:
-- User significantly changed their workflow
-- User wants to validate previous patterns
-- User wants to extract different insights from same sessions
 
 ## Error Handling
 
-- No diary entries → suggest running `/diary` or wrap-up first
-- All entries processed → inform user, suggest "include all entries"
-- Filter matches nothing → show options (remove filter, include processed, try different filter)
-- Fewer than 3 entries → proceed but note low pattern confidence
-- Malformed entries → skip and document which had issues
-- CLAUDE.md read/write failure → report error but continue with reflection
-- Project directory doesn't exist → skip and report in summary
-- Rule conflicts with global → flag for user review, don't auto-add
-
-## Example Usage
-
-```
-/reflect                                    # All unprocessed entries
-/reflect last 20 entries                    # More entries
-/reflect from 2026-01-01 to 2026-03-31     # Date range
-/reflect for project ~/Vault/30_Projects/my-project     # Single project
-/reflect related to testing                 # Keyword filter
-/reflect include all entries                # Re-analyze everything
-/reflect reprocess 2026-03-13-session-1.md  # Re-analyze specific entry
-```
+- no diary entries -> suggest running `/diary` or wrap-up first
+- all entries processed -> inform the user and suggest `include all entries`
+- filter matches nothing -> show options (remove filter, include processed, try different filter)
+- fewer than 3 entries -> proceed but note low pattern confidence
+- malformed entries -> skip and document which had issues
+- repo `PROJECT.md` read/write failure -> report error but continue with reflection
+- canonical global file missing -> still propose the change, note that creation or seeding is required before sync can run

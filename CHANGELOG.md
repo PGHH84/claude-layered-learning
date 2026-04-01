@@ -9,6 +9,24 @@ Format: [Semantic Versioning](https://semver.org/) — `MAJOR.MINOR.PATCH`
 
 ---
 
+## [1.3.0] - 2026-04-01
+
+### Added
+- Shared global instruction sync scripts:
+  - `scripts/sync_global_instructions.sh`
+  - `scripts/check_global_instructions_sync.sh`
+- Canonical global instruction source at `~/.agents/global/PROJECT.md` with generated mirrors for:
+  - `~/.claude/CLAUDE.md`
+  - `~/.codex/AGENTS.md`
+
+### Changed
+- **Wrap-up**: removed the final push prompt.
+- **Wrap-up**: project-local operating improvements now route to repo `PROJECT.md` instead of project `CLAUDE.md`.
+- **Wrap-up**: global operating improvements now route to canonical `~/.agents/global/PROJECT.md` instead of writing directly to `~/.claude/CLAUDE.md`.
+- **Reflect**: now routes durable promotions to repo `PROJECT.md` and canonical `~/.agents/global/PROJECT.md`, applies approved edits in the same flow, and advances `processed.log` only after reflection acceptance and approved-edit resolution.
+- **Diary and PreCompact hook**: now use the shared canonical project-root slug and collapse worktrees to the main repo identity before naming diary files.
+- **INSTALL.md / README.md**: document the canonical global instruction flow and shared mirror-sync hook.
+
 ## [1.2.0] - 2026-03-20
 
 ### Changed
