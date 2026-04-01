@@ -1,5 +1,5 @@
 ---
-description: Analyze diary entries to identify cross-session patterns and propose durable updates to repo PROJECT.md and canonical global instructions
+description: Analyze diary entries to identify cross-session patterns and propose durable updates to repo CLAUDE.md and canonical global instructions
 ---
 
 # Reflect on Diary Entries and Synthesize Insights
@@ -12,7 +12,7 @@ instruction source.
 
 - reads diary entries and supporting memory
 - identifies repeated patterns, rule violations, contradictions, and one-off observations
-- proposes durable promotions to repo `PROJECT.md` or `~/.agents/global/PROJECT.md`
+- proposes durable promotions to repo `CLAUDE.md` or `~/.agents/global/PROJECT.md`
 - applies approved durable promotions in the same reflection flow
 
 ## Parameters
@@ -32,7 +32,7 @@ Default: analyze **all unprocessed diary entries**.
 - reflections: `~/.claude/memory/reflections/`
 - processed index: `~/.claude/memory/reflections/processed.log`
 - project memory: `~/.claude/projects/<slug>/memory/MEMORY.md`
-- project operating guidance source: repo `PROJECT.md`
+- project operating guidance source: repo `CLAUDE.md`
 - global operating guidance source: `~/.agents/global/PROJECT.md`
 - generated global mirrors: `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`
 
@@ -56,7 +56,7 @@ hook agree on project identity:
    - recent reflections
    - `~/.claude/memory/reflections/processed.log`
    - project `~/.claude/projects/<slug>/memory/MEMORY.md` when project context is relevant
-   - repo `PROJECT.md` when project operating-guidance candidates are being considered
+   - repo `CLAUDE.md` when project operating-guidance candidates are being considered
    - canonical global `~/.agents/global/PROJECT.md` when evaluating global promotion candidates
 5. Group repeated patterns, explicit rule violations, contradictions, and one-off observations.
 6. Carry forward recent one-off observations from prior reflections when the same signal reappears.
@@ -135,7 +135,7 @@ No durable edit is automatic until the user approves it.
 - auto-write:
   - reflection markdown file
 - require approval:
-  - repo `PROJECT.md` edits
+  - repo `CLAUDE.md` edits
   - `~/.agents/global/PROJECT.md` edits
   - new skill or hook creation
 - auto-run after approved global canonical edits:
@@ -212,7 +212,7 @@ Every proposed promotion must include:
 ### Global canonical candidates
 - ...
 
-### Project `PROJECT.md` candidates
+### Project `CLAUDE.md` candidates
 - ...
 
 ### Skill / hook candidates
@@ -233,7 +233,7 @@ At the end, report:
 - rule violations detected and strengthened
 - reflection filename and location
 - pattern count (global vs project-specific)
-- whether repo `PROJECT.md` edits were proposed or applied
+- whether repo `CLAUDE.md` edits were proposed or applied
 - whether canonical global edits were proposed or applied
 - whether mirror sync ran
 - processed.log confirmation
@@ -245,5 +245,5 @@ At the end, report:
 - filter matches nothing -> show options (remove filter, include processed, try different filter)
 - fewer than 3 entries -> proceed but note low pattern confidence
 - malformed entries -> skip and document which had issues
-- repo `PROJECT.md` read/write failure -> report error but continue with reflection
+- repo `CLAUDE.md` read/write failure -> report error but continue with reflection
 - canonical global file missing -> still propose the change, note that creation or seeding is required before sync can run

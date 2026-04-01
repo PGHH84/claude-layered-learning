@@ -2,63 +2,36 @@
 
 ## Prerequisites
 
-- [Claude Code](https://claude.com/claude-code) installed and working
-- Access to your `~/.claude` directory
-- Access to your shared `~/.agents/global` directory for canonical global instructions
+- [Claude Code](https://claude.com/claude-code)
+- access to `~/.claude/` and `~/.agents/global/`
+- Bash for the hook and sync scripts
 
 ## Install
-
-### 1. Clone the repo
 
 ```bash
 git clone https://github.com/PGHH84/claude-layered-learning.git
 cd claude-layered-learning
-```
-
-### 2. Copy commands and skill
-
-```bash
 cp commands/*.md ~/.claude/commands/
-mkdir -p ~/.claude/skills/wrap-up
+mkdir -p ~/.claude/skills/wrap-up ~/.claude/hooks
 cp skills/wrap-up/SKILL.md ~/.claude/skills/wrap-up/
-```
-
-### 3. Create memory directories
-
-```bash
-mkdir -p ~/.claude/memory/diary ~/.claude/memory/reflections
-```
-
-### 4. Install the shared global instruction sync hook
-
-```bash
+cp hooks/pre-compact.sh ~/.claude/hooks/pre-compact.sh
+chmod +x ~/.claude/hooks/pre-compact.sh
 mkdir -p ~/.agents/global
 cp scripts/sync_global_instructions.sh ~/.agents/global/sync_global_instructions.sh
 cp scripts/check_global_instructions_sync.sh ~/.agents/global/check_global_instructions_sync.sh
 chmod +x ~/.agents/global/sync_global_instructions.sh ~/.agents/global/check_global_instructions_sync.sh
+mkdir -p ~/.claude/memory/diary ~/.claude/memory/reflections
 ```
 
-If `~/.agents/global/PROJECT.md` does not exist yet, seed it from your current
-global instruction file and then run:
+If `~/.agents/global/PROJECT.md` does not exist yet, seed it from your current global instruction file and run:
 
 ```bash
 ~/.agents/global/sync_global_instructions.sh
 ```
 
-This creates or refreshes the generated runtime mirrors:
+## Configure PreCompact
 
-- `~/.claude/CLAUDE.md`
-- `~/.codex/AGENTS.md`
-
-### 5. Set up the PreCompact hook
-
-```bash
-mkdir -p ~/.claude/hooks
-cp hooks/pre-compact.sh ~/.claude/hooks/pre-compact.sh
-chmod +x ~/.claude/hooks/pre-compact.sh
-```
-
-Add to `~/.claude/settings.json`:
+Add this to `~/.claude/settings.json`:
 
 ```json
 {
@@ -87,25 +60,14 @@ Add to `~/.claude/settings.json`:
 }
 ```
 
-### 6. Verify
+## Verify
 
-In Claude Code:
+- In Claude Code, run `/diary` and `/reflect`
+- In a terminal, run `~/.agents/global/check_global_instructions_sync.sh`
 
-```text
-/diary
-/reflect
-```
-
-And from a terminal:
+## Update
 
 ```bash
-~/.agents/global/check_global_instructions_sync.sh
-```
-
-## Updating
-
-```bash
-cd claude-layered-learning
 git pull
 cp commands/*.md ~/.claude/commands/
 cp skills/wrap-up/SKILL.md ~/.claude/skills/wrap-up/
@@ -114,42 +76,3 @@ cp scripts/sync_global_instructions.sh ~/.agents/global/sync_global_instructions
 cp scripts/check_global_instructions_sync.sh ~/.agents/global/check_global_instructions_sync.sh
 chmod +x ~/.claude/hooks/pre-compact.sh ~/.agents/global/sync_global_instructions.sh ~/.agents/global/check_global_instructions_sync.sh
 ```
-
-## Uninstalling
-
-```bash
-rm ~/.claude/commands/diary.md
-rm ~/.claude/commands/reflect.md
-rm -rf ~/.claude/skills/wrap-up
-rm -f ~/.claude/hooks/pre-compact.sh
-```
-
-The shared global canonical file and mirrors are preserved. To remove the
-shared global hook too:
-
-```bash
-rm -f ~/.agents/global/sync_global_instructions.sh ~/.agents/global/check_global_instructions_sync.sh
-```
-
-## Troubleshooting
-
-### `/diary` or `/reflect` not recognized
-
-1. Check files exist: `ls ~/.claude/commands/diary.md ~/.claude/commands/reflect.md`
-2. Restart Claude Code
-3. Verify the files are directly in `~/.claude/commands/`
-
-### Global mirrors drifted
-
-Run:
-
-```bash
-~/.agents/global/check_global_instructions_sync.sh
-~/.agents/global/sync_global_instructions.sh
-```
-
-### PreCompact hook not firing
-
-1. Verify the script is executable: `ls -la ~/.claude/hooks/pre-compact.sh`
-2. Check `~/.claude/settings.json` has the `PreCompact` hook configured
-3. Restart Claude Code after changing hook configuration

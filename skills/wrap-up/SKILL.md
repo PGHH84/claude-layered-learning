@@ -23,8 +23,8 @@ Wrap-up is mechanical work. Use the cheapest capable model available.
 ## Hard Safety Boundaries
 
 - never create repo-local runtime memory folders in working repositories
-- never edit repo `AGENTS.md` directly as an operating-instruction source
-- never edit repo `CLAUDE.md` directly when the repo uses the `PROJECT.md` / `CLAUDE.md` / `AGENTS.md` triumvirate
+- never treat generated home-directory mirrors as the editable source of repo-local guidance
+- in this public repo, repo `CLAUDE.md` is the local guidance surface
 - never edit `~/.claude/CLAUDE.md` or `~/.codex/AGENTS.md` directly when a generated mirror path should be used
 - never write arbitrary `~/.codex/**` state outside the approved global mirror-sync path
 - never auto-apply global canonical edits or new-skill changes without approval
@@ -35,7 +35,7 @@ Wrap-up is mechanical work. Use the cheapest capable model available.
 - project memory: `~/.claude/projects/<slug>/memory/MEMORY.md`
 - diary output: `~/.claude/memory/diary/`
 - reflections: `~/.claude/memory/reflections/`
-- project operating guidance source: repo `PROJECT.md`
+- project operating guidance source: repo `CLAUDE.md`
 - global operating guidance source: `~/.agents/global/PROJECT.md`
 - generated global mirrors: `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`
 - optional personal extension: `~/.claude/skills/wrap-up/personal.md`
@@ -123,7 +123,7 @@ If the personal-extension pass materially changes tracked project state, reconci
 Use this mapping when deciding where learned material belongs:
 
 - current-session state and discovered project facts -> `MEMORY.md`
-- project-local operating rules and conventions -> repo `PROJECT.md`
+- project-local operating rules and conventions -> repo `CLAUDE.md`
 - scoped file-type or area-specific instructions -> `.claude/rules/`
 - private per-project local notes -> `CLAUDE.local.md`
 - cross-project behavior rules -> `~/.agents/global/PROJECT.md`
@@ -137,7 +137,7 @@ Use this mapping when deciding where learned material belongs:
   - commit creation when uncommitted changes exist
   - deploy when a documented deploy path exists
   - repo-owned task cleanup
-  - repo `PROJECT.md` updates for local operating improvements
+  - repo `CLAUDE.md` updates for local operating improvements
   - `.claude/rules/` updates when the destination is clearly a scoped local rule
   - `CLAUDE.local.md` updates when the destination is clearly private local context
 - require approval:
@@ -162,7 +162,7 @@ Finding categories:
 Action types:
 
 - repo doc update
-- repo `PROJECT.md` update
+- repo `CLAUDE.md` update
 - `.claude/rules/` update
 - `CLAUDE.local.md` update
 - global `~/.agents/global/PROJECT.md` candidate
